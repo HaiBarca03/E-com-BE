@@ -2,9 +2,9 @@ const ProductModel = require('../models/ProductModel')
 
 const createProduct = async (req, res) => {
     try {
-        const { name, image, type, price, countInStock, rating, description } = req.body
+        const { name, image, type, price, countInStock, rating, description, selled } = req.body
         // check input
-        if (!name || !image || !type || !price || !countInStock || !rating || !description) {
+        if (!name || !image || !type || !price || !countInStock || !rating || !description || !selled) {
             return res.json({ success: false, message: "Input is required" })
         }
         const checkProduct = await ProductModel.findOne({
@@ -22,6 +22,7 @@ const createProduct = async (req, res) => {
             countInStock: countInStock,
             rating: rating,
             description: description,
+            selled: selled,
         })
 
         const product = await newProduct.save()
@@ -67,7 +68,7 @@ const updateProduct = async (req, res) => {
 }
 
 const getAllProduct = async (req, res) => {
-    const { limit = 2, page = 0, sort, filter } = req.query;
+    const { limit, page = 0, sort, filter } = req.query;
     const limitNum = parseInt(limit);
     const pageNum = parseInt(page);
 
@@ -190,10 +191,40 @@ const deleteProduct = async (req, res) => {
     }
 }
 
+const deleteManyProduct = async (req, res) => {
+    const ids = req.body.ids
+    const token = req.headers
+
+    try {
+        const idsArray = Array.isArray(ids) ? ids : [ids];
+        if (!ids) {
+            return res.json({ success: false, message: 'ids does not exist' });
+        }
+
+        // Update the product
+        const deletedProductMany = await ProductModel.deleteMany({ _id: { $in: idsArray } });
+
+        if (!deletedProductMany) {
+            return res.json({ success: false, message: 'Failed to update user' });
+        }
+
+        // Return success response
+        console.log('token:', token)
+        res.json({
+            success: true,
+            message: 'product many deleted'
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: 'Error updating user' });
+    }
+}
+
 module.exports = {
     getAllProduct,
     createProduct,
     updateProduct,
     getDetailProduct,
-    deleteProduct
+    deleteProduct,
+    deleteManyProduct
 }

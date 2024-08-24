@@ -22,13 +22,11 @@ const userSchema = new mongoose.Schema({
         type: Number,
         // required: true
     },
-    access_token: {
+    avatar: {
         type: String,
-        require: true
     },
-    refresh_token: {
+    address: {
         type: String,
-        require: true
     },
 }, {
     timestamps: true

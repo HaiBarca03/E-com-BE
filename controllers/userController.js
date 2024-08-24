@@ -97,7 +97,7 @@ const registerUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
     const userId = req.params.id;
-    const { name, email, phone, password } = req.body;
+    const data = req.body;
 
     try {
         // Check if the user exists
@@ -107,13 +107,14 @@ const updateUser = async (req, res) => {
         }
 
         // Update the user
-        const updatedUser = await UserModel.findByIdAndUpdate(userId, req.body, { new: true });
+        const updatedUser = await UserModel.findByIdAndUpdate(userId, data, { new: true });
 
         if (!updatedUser) {
             return res.json({ success: false, message: 'Failed to update user' });
         }
 
         // Return success response
+        console.log('data:', data)
         res.json({
             success: true,
             data: updatedUser
@@ -139,7 +140,7 @@ const deleteUser = async (req, res) => {
         const deletedUser = await UserModel.findByIdAndDelete(userId);
 
         if (!deletedUser) {
-            return res.json({ success: false, message: 'Failed to update user' });
+            return res.json({ success: false, message: 'Failed to delete user' });
         }
 
         // Return success response
@@ -191,6 +192,36 @@ const getDetailUser = async (req, res) => {
     }
 }
 
+const deleteManyUser = async (req, res) => {
+    const ids = req.body.ids
+    console.log('ids: ', ids)
+    const token = req.headers
+
+    try {
+        const idsArray = Array.isArray(ids) ? ids : [ids];
+        if (!ids) {
+            return res.json({ success: false, message: 'Failed to delete user' });
+        }
+
+        // Update the user
+        const deletedManyUser = await UserModel.deleteMany({ _id: { $in: idsArray } });
+
+        if (!deletedManyUser) {
+            return res.json({ success: false, message: 'Failed to update user' });
+        }
+
+        // Return success response
+        console.log('token:', token)
+        res.json({
+            success: true,
+            message: 'user deleted'
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: 'Error updating user' });
+    }
+}
+
 const refreshToken = async (req, res) => {
     // console.log('req.cookies: ', req.cookies)
     const token = req.cookies.refresh_token
@@ -236,5 +267,6 @@ module.exports = {
     deleteUser,
     getAllUser,
     getDetailUser,
-    refreshToken
+    refreshToken,
+    deleteManyUser
 }

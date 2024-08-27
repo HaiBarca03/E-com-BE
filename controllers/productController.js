@@ -2,9 +2,9 @@ const ProductModel = require('../models/ProductModel')
 
 const createProduct = async (req, res) => {
     try {
-        const { name, image, type, price, countInStock, rating, description, selled } = req.body
+        const { name, image, type, price, countInStock, rating, description, selled, discount, sold } = req.body
         // check input
-        if (!name || !image || !type || !price || !countInStock || !rating || !description || !selled) {
+        if (!name || !image || !type || !price || !countInStock || !rating || !description || !selled, !discount) {
             return res.json({ success: false, message: "Input is required" })
         }
         const checkProduct = await ProductModel.findOne({
@@ -23,6 +23,8 @@ const createProduct = async (req, res) => {
             rating: rating,
             description: description,
             selled: selled,
+            discount: discount,
+            sold: sold
         })
 
         const product = await newProduct.save()
@@ -220,11 +222,26 @@ const deleteManyProduct = async (req, res) => {
     }
 }
 
+const getAllType = async (req, res) => {
+    try {
+        const allType = await ProductModel.distinct('type');
+        res.json({
+            success: true,
+            data: allType,
+            message: 'product type'
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: 'Error get product' });
+    }
+};
+
 module.exports = {
     getAllProduct,
     createProduct,
     updateProduct,
     getDetailProduct,
     deleteProduct,
-    deleteManyProduct
+    deleteManyProduct,
+    getAllType
 }

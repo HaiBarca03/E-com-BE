@@ -35,6 +35,10 @@ const productSchema = new mongoose.Schema({
     selled: {
         type: Number
     },
+    sold: {
+        type: Number,
+        required: false
+    }
 }, {
     timestamps: true
 })

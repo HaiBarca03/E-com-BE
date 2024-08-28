@@ -6,6 +6,7 @@ const dbConnect = require('./config/db')
 const userRouter = require('./router/userRouter')
 const productRouter = require('./router/productRouter')
 const orderRouter = require('./router/orderRouter')
+const reviewRouter = require('./router/reviewRouter')
 
 const app = express()
 
@@ -26,6 +27,7 @@ dbConnect()
 app.use('/api/user', userRouter)
 app.use('/api/product', productRouter)
 app.use('/api/order', orderRouter)
+app.use('/api/review', reviewRouter)
 
 app.get('/', function (req, res) {
     res.send('Hello World')

@@ -80,6 +80,10 @@ const orderSchema = new mongoose.Schema({
     deliveredAt: {
         type: Date
     },
+    stripeSessionId: {
+        type: String,
+        required: true
+    }
 }, {
     timestamps: true
 })

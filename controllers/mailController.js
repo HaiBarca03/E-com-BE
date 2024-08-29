@@ -4,16 +4,16 @@ const UserModel = require('../models/UserModel')
 
 const sendOrderConfirmationEmail = async (user, orderDetails) => {
     const transporter = nodemailer.createTransport({
-        service: 'Gmail', // Sử dụng Gmail, bạn có thể đổi thành dịch vụ khác
+        service: 'Gmail',
         auth: {
-            user: 'hdoan82300@gmail.com', // Thay bằng email của bạn
-            pass: 'rvuo rvjg apwy nolv',  // Thay bằng mật khẩu email của bạn
+            user: 'hdoan82300@gmail.com',
+            pass: 'rvuo rvjg apwy nolv',
         },
     });
 
     const mailOptions = {
-        from: 'hdoan82300@gmail.com',  // Email gửi đi
-        to: 'hdoan82300@gmail.com',  // Email người nhận
+        from: 'hdoan82300@gmail.com',
+        to: 'hdoan82300@gmail.com',
         subject: 'Xác nhận đơn hàng của bạn',
         html: `
         <h1>Cảm ơn bạn đã đặt hàng!</h1>

@@ -57,7 +57,22 @@ const getAllComments = async (req, res) => {
     }
 };
 
+const getAllReview = async (req, res) => {
+    try {
+        const allReview = await ReviewModel.find();
+        res.json({
+            success: true,
+            data: allReview,
+            message: 'review all'
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: 'Error updating user' });
+    }
+}
+
 module.exports = {
     createComment,
-    getAllComments
+    getAllComments,
+    getAllReview
 };

@@ -173,10 +173,25 @@ const updateOrderDeliveryStatus = async (req, res) => {
     }
 };
 
+const getAllOrder = async (req, res) => {
+    try {
+        const allOrder = await OrderModel.find();
+        res.json({
+            success: true,
+            data: allOrder,
+            message: 'order all'
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: 'Error updating user' });
+    }
+}
+
 module.exports = {
     createOrder,
     getOrdersByUserId,
     deleteOrder,
     updateOrderPaymentStatus,
-    updateOrderDeliveryStatus
+    updateOrderDeliveryStatus,
+    getAllOrder
 }

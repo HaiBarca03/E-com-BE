@@ -24,7 +24,8 @@ const auth = async (req, res, next) => {
 
 const authUser = async (req, res, next) => {
     // console.log('req.params', req.params)
-    const userId = req.params.id
+    // const userId = req.params.id
+    const userId = req.body
     console.log('userId', userId)
     const token = req.headers.token.split(' ')[1]
     jwt.verify(token, process.env.ACCESS_TOKEN, function (err, user) {

@@ -1,9 +1,8 @@
 const OrderModel = require('../models/OrderModel')
 const ProductModel = require('../models/ProductModel')
-const Stripe = require('stripe');
 const { sendOrderConfirmationEmail } = require('./mailController');
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+const { createPaymentSession } = require('./paymentController');
+const amqp = require('amqplib');
 
 const createOrder = async (req, res) => {
     const frontend_url = 'http://localhost:3000';
@@ -29,29 +28,20 @@ const createOrder = async (req, res) => {
             totalPrice,
             user: user
         });
+
         console.log('newOrder', newOrder);
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: orderItems.map(item => ({
-                price_data: {
-                    currency: 'usd',
-                    product_data: {
-                        name: item.name,
-                        description: item.description,
-                    },
-                    unit_amount: item.price * 100,
-                },
-                quantity: item.amount,
-            })),
-            mode: 'payment',
-            success_url: `${frontend_url}`,
-            cancel_url: `${frontend_url}`,
-            customer_email: req.body.user?.email,
-        });
-        newOrder.stripeSessionId = session.id;
+        // Tạo phiên thanh toán
+        const paymentResult = await createPaymentSession(orderItems, user, frontend_url);
+
+        if (!paymentResult.success) {
+            return res.json({ success: false, message: paymentResult.message });
+        }
+
+        newOrder.stripeSessionId = paymentResult.sessionId;
         await newOrder.save();
 
+        // Cập nhật số lượng sản phẩm trong kho
         for (const item of orderItems) {
             const product = await ProductModel.findById(item.product);
             if (product) {
@@ -62,6 +52,7 @@ const createOrder = async (req, res) => {
                 return res.json({ success: false, message: `Sản phẩm với ID ${item.product} không tồn tại` });
             }
         }
+
         await sendOrderConfirmationEmail(user, {
             fullName,
             address,
@@ -73,12 +64,13 @@ const createOrder = async (req, res) => {
             frontend_url
         });
 
-        res.json({ success: true, url: session.url, message: 'Phiên thanh toán được tạo thành công' });
+        res.json({ success: true, url: paymentResult.url, message: 'Phiên thanh toán được tạo thành công' });
     } catch (error) {
         console.error(error);
         res.json({ success: false, message: 'Có lỗi xảy ra' });
     }
 };
+
 
 const getOrdersByUserId = async (req, res) => {
     try {
@@ -126,18 +118,15 @@ const updateOrderPaymentStatus = async (req, res) => {
     console.log('orderId:', orderId)
 
     try {
-        // Tìm đơn hàng với sessionId từ Stripe
         const order = await OrderModel.findById(orderId)
 
         if (!order) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
         }
 
-        // Cập nhật trạng thái thanh toán
         order.isPaid = true;
         order.paidAt = Date.now();
 
-        // Lưu thay đổi vào database
         await order.save();
 
         res.json({ success: true, message: 'Trạng thái thanh toán đã được cập nhật' });
@@ -152,18 +141,15 @@ const updateOrderDeliveryStatus = async (req, res) => {
     console.log('orderId:', orderId)
 
     try {
-        // Tìm đơn hàng với sessionId từ Stripe
         const delivery = await OrderModel.findById(orderId)
 
         if (!delivery) {
             return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
         }
 
-        // Cập nhật trạng thái thanh toán
         delivery.isDelivered = true;
         delivery.deliveredAt = Date.now();
 
-        // Lưu thay đổi vào database
         await delivery.save();
 
         res.json({ success: true, message: 'Trạng thái thanh toán đã được cập nhật' });
